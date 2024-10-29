@@ -1,23 +1,26 @@
-
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, render_template
 from rembg import remove
 from PIL import Image, ImageFilter
 import io
 
 app = Flask(__name__)
 
+@app.route("/")
+def index():
+    return render_template("index.html")
+
 @app.route("/process-image", methods=["POST"])
 def process_image():
     file = request.files["image"]
-    input_image = Image.open(file.stream).convert("RGBA")  # Ensuring RGBA mode for transparent backgrounds
+    input_image = Image.open(file.stream).convert("RGBA")
     
     # Remove background
     output_image = remove(input_image)
     
-    # Optional post-processing for smoother edges
-    output_image = output_image.filter(ImageFilter.SMOOTH_MORE)  # Apply smoothing to reduce rough edges
+    # Apply edge smoothing for better quality
+    output_image = output_image.filter(ImageFilter.SMOOTH_MORE)
     
-    # Save the result in high quality to a BytesIO stream
+    # Save result in high quality
     img_io = io.BytesIO()
     output_image.save(img_io, 'PNG', quality=100)
     img_io.seek(0)
